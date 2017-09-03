@@ -1,12 +1,9 @@
 package com.example.ubuntu_master.chucknorrisjoke;
 
-import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
-import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.GridLayout;
 import android.widget.ImageView;
@@ -16,8 +13,6 @@ import com.koushikdutta.async.future.FutureCallback;
 import com.koushikdutta.ion.Ion;
 import com.koushikdutta.ion.ProgressCallback;
 import com.squareup.picasso.Picasso;
-import com.squareup.picasso.Target;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -28,10 +23,6 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity {
 
     private ArrayList<String> picturesUrls;
-    private ArrayList<ImageView> pictures;
-
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,15 +30,11 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-//        getPicturesUrl("http://thecatapi.com/api/images/get?format=xml&results_per_page=10&type=jpg");
-
     }
 
 
     public void downloadImagesButton(View v) {
-//        DownloadImagesTask  dit = new DownloadImagesTask();
-//        dit.execute();
-
+//        getPicturesUrl("http://thecatapi.com/api/images/get?format=xml&results_per_page=1000&type=jpg");
         getPicturesUrl("http://thecatapi.com/api/images/get?format=xml&results_per_page=10&type=jpg");
 
     }
@@ -57,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
 
         final ProgressBar progressBar = (ProgressBar)findViewById(R.id.progressBar);
         final TextView jokeText = (TextView)findViewById(R.id.joke_text);
+        progressBar.setProgress(0);
 
 
         Ion.with(this)
@@ -74,10 +62,10 @@ public class MainActivity extends AppCompatActivity {
                     public void onCompleted(Exception e, String result) {
                         try {
                             jokeText.setText(getJoke(result));
+                            progressBar.setProgress(100);
                         } catch (JSONException e1) {
                             e1.printStackTrace();
                         }
-                        progressBar.setProgress(0);
                         Log.v("ion", result);
                         if (e != null) {
                             System.out.println("DOWNLOAD ERROR");
@@ -97,10 +85,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void getPicturesUrl(String url){
+        picturesUrls = new ArrayList<>();
+        final ProgressBar progressBar = (ProgressBar)findViewById(R.id.progressBar);
+        progressBar.setProgress(0);
         Ion.with(this).load(url).asString().setCallback(new FutureCallback<String>() {
             @Override
             public void onCompleted(Exception e, String result) {
                 try {
+                    int progressBarValue = 0;
 
                     JSONObject xmlJSONObj = XML.toJSONObject(result);
                     String jsonPrettyPrintString = xmlJSONObj.toString();
@@ -115,10 +107,11 @@ public class MainActivity extends AppCompatActivity {
                     }
                     for(String s : picturesUrls){
                         System.out.println(s);
+                        addViewToGrid(loadSingleImage(s, 0, 0));
+                        progressBarValue += 100 / picturesUrls.size();
+                        System.out.println("PROGRESS BAR VALUE :  " + progressBarValue);
+                        progressBar.setProgress(progressBarValue);
                     }
-
-                    DownloadImagesTask  dit = new DownloadImagesTask();
-                    dit.execute();
 
 
                 } catch (JSONException e1) {
@@ -130,86 +123,21 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-//    public ArrayList<ImageView> createImageGallery(int n) {
-//        ArrayList<ImageView> imageGallery = new ArrayList<>();
-//        for(int i = 0; i < n; i++) {
-//            imageGallery.add(new ImageView(this));
-//        }
-//        return imageGallery;
-//    }
 
-    public ImageView loadSingleImage(String url){
+    public ImageView loadSingleImage(String url, int rowNum, int colNum){
         ImageView iv = new  ImageView(this);
-        Picasso.with(this).load(url).into(iv);
+        Picasso.with(this).load(url).resize(400, 400).into(iv);
+//        Picasso.with(this).load(url).into(iv);
 
-
-
-
-
-//        Picasso.with(this).load("http://25.media.tumblr.com/tumblr_lpgfaarxXI1qbhms5o1_500.jpg").into(iv);
+        GridLayout.LayoutParams param =new GridLayout.LayoutParams();
+        param.setGravity(Gravity.CENTER);
+        iv.setLayoutParams(param);
         return iv;
     }
 
     public void addViewToGrid(ImageView iv){
         GridLayout g = (GridLayout)findViewById(R.id.image_grid);
         g.addView(iv);
-    }
-
-    public void addPicture(ImageView iv){
-        pictures.add(iv);
-    }
-
-    private class DownloadImagesTask extends AsyncTask<Integer, Integer, Void> {
-
-        @Override
-        protected Void doInBackground(Integer... params) {
-
-            pictures = new ArrayList<>();
-
-
-
-
-
-
-
-
-
-
-
-
-//            for(int i = 0; i< picturesUrls.size(); i++){
-////                addViewToGrid(loadSingleImage(picturesUrls.get(i)));
-////                pictures.add(loadSingleImage(picturesUrls.get(i)));
-////                System.out.println("ala ma kota");
-////                addPicture();
-//                loadSingleImage(picturesUrls.get(i));
-//            }
-//            getPicturesUrl("http://thecatapi.com/api/images/get?format=xml&results_per_page=10&type=jpg");
-            System.out.println("ala ma kota");
-
-
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void result) {
-
-
-            for(int i = 0; i< picturesUrls.size(); i++){
-                addViewToGrid(loadSingleImage(picturesUrls.get(i)));
-//                pictures.add(loadSingleImage(picturesUrls.get(i)));
-            }
-
-//            for(ImageView iv : pictures){
-//                addViewToGrid(iv);
-//            }
-
-            System.out.println("@@@@@@@@@@@@@@@");
-            System.out.println(picturesUrls.size());
-            System.out.println("@@@@@@@@@@@@@@@");
-//            addViewToGrid(loadSingleImage("ada"));
-        }
-
     }
 
 }

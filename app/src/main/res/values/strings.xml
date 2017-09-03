@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">ChuckNorrisJoke</string>
+    <string name="download_joke">Download Joke</string>
+    <string name="download_images">Download Images</string>
+</resources>
